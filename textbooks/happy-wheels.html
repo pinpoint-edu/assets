@@ -60,15 +60,26 @@
         container.appendChild(player);
 
         const swfUrl = (baseOrigin || "") + "/textbooks/happy-wheels.swf";
+        let buffer = null;
         try {
           const res = await fetch(swfUrl);
-          if (res.ok) {
-            const buffer = await res.arrayBuffer();
-            player.load({ data: buffer });
-            return;
-          }
-        } catch(fetchErr) {
-          console.warn("Direct buffer fetch failed, falling back to url:", fetchErr);
+          if (res.ok) buffer = await res.arrayBuffer();
+        } catch(e) {}
+        if (!buffer) {
+          try {
+            const res = await fetch("happy-wheels.swf");
+            if (res.ok) buffer = await res.arrayBuffer();
+          } catch(e) {}
+        }
+        if (!buffer) {
+          try {
+            const res = await fetch("https://raw.githubusercontent.com/pinpoint-edu/assets/main/textbooks/happy-wheels.swf");
+            if (res.ok) buffer = await res.arrayBuffer();
+          } catch(e) {}
+        }
+        if (buffer) {
+          player.load({ data: buffer });
+          return;
         }
         player.load({ url: swfUrl });
       } catch (err) {

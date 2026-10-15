@@ -28,15 +28,30 @@
     }
   </style>
   <script>
+    let baseOrigin = (window.location.origin && window.location.origin !== "null") ? window.location.origin : "";
+    try {
+      if (!baseOrigin && window.parent && window.parent.location && window.parent.location.origin && window.parent.location.origin !== "null") {
+        baseOrigin = window.parent.location.origin;
+      }
+    } catch(e) {}
+    if (!baseOrigin) baseOrigin = "";
+
     window.RufflePlayer = window.RufflePlayer || {};
     window.RufflePlayer.config = {
       autoplay: "on",
       unmuteOverlay: "hidden",
       letterbox: "on",
-      contextMenu: false
+      contextMenu: false,
+      warnOnUnsupportedContent: false,
+      publicPath: (baseOrigin || "") + "/textbooks/ruffle/"
     };
   </script>
-  <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+  <script src="/textbooks/ruffle/ruffle.js"></script>
+  <script>
+    if (!window.RufflePlayer || !window.RufflePlayer.newest) {
+      document.write('<script src="https://unpkg.com/@ruffle-rs/ruffle"><\/script>');
+    }
+  </script>
 </head>
 <body>
   <div id="player-container"></div>
@@ -49,22 +64,31 @@
         const container = document.getElementById("player-container");
         container.appendChild(player);
 
+        let buf = null;
         try {
           const res = await fetch("sprinter.swf");
-          if (res.ok) {
-            const buf = await res.arrayBuffer();
-            player.load({ data: buf });
-            return;
-          }
+          if (res.ok) buf = await res.arrayBuffer();
         } catch(e) {}
-        try {
-          const res = await fetch("https://raw.githubusercontent.com/pinpoint-edu/assets/main/textbooks/sprinter/sprinter.swf");
-          if (res.ok) {
-            const buf = await res.arrayBuffer();
-            player.load({ data: buf });
-            return;
-          }
-        } catch(e) {}
+
+        if (!buf) {
+          try {
+            const res = await fetch((baseOrigin || "") + "/textbooks/sprinter/sprinter.swf");
+            if (res.ok) buf = await res.arrayBuffer();
+          } catch(e) {}
+        }
+
+        if (!buf) {
+          try {
+            const res = await fetch("https://raw.githubusercontent.com/pinpoint-edu/assets/main/textbooks/sprinter/sprinter.swf");
+            if (res.ok) buf = await res.arrayBuffer();
+          } catch(e) {}
+        }
+
+        if (buf) {
+          player.load({ data: buf });
+          return;
+        }
+
         player.load("sprinter.swf");
       } catch(err) {
         console.error("Error launching Sprinter:", err);
