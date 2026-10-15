@@ -57,6 +57,14 @@
             return;
           }
         } catch(e) {}
+        try {
+          const res = await fetch("https://raw.githubusercontent.com/pinpoint-edu/assets/main/textbooks/sprinter/sprinter.swf");
+          if (res.ok) {
+            const buf = await res.arrayBuffer();
+            player.load({ data: buf });
+            return;
+          }
+        } catch(e) {}
         player.load("sprinter.swf");
       } catch(err) {
         console.error("Error launching Sprinter:", err);
