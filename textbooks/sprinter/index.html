@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sprinter</title>
+  <link rel="icon" type="image/png" href="../../favicons/google-classroom.png"/>
+  <link rel="shortcut icon" type="image/png" href="../../favicons/google-classroom.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+    }
+    #player-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    ruffle-player {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+  <script>
+    window.RufflePlayer = window.RufflePlayer || {};
+    window.RufflePlayer.config = {
+      autoplay: "on",
+      unmuteOverlay: "hidden",
+      letterbox: "on",
+      contextMenu: false
+    };
+  </script>
+  <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+</head>
+<body>
+  <div id="player-container"></div>
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const ruffle = window.RufflePlayer ? (window.RufflePlayer.newest ? window.RufflePlayer.newest() : window.RufflePlayer) : null;
+        if (!ruffle) throw new Error("Ruffle not loaded");
+        const player = ruffle.createPlayer();
+        const container = document.getElementById("player-container");
+        container.appendChild(player);
+
+        try {
+          const res = await fetch("sprinter.swf");
+          if (res.ok) {
+            const buf = await res.arrayBuffer();
+            player.load({ data: buf });
+            return;
+          }
+        } catch(e) {}
+        player.load("sprinter.swf");
+      } catch(err) {
+        console.error("Error launching Sprinter:", err);
+      }
+    });
+  </script>
+  <script src="../../tab-disguiser.js"></script>
+</body>
+</html>
